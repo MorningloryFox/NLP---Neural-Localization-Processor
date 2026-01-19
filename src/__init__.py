@@ -1,0 +1,1 @@
+"""Lume Novel Localizer package"""
