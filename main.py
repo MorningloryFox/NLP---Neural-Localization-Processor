@@ -71,7 +71,7 @@ def process_novel_session(novel_name: str, input_dir: Path, output_dir: Path, pr
         # Etapa de Carregamento e Normalização Semântica
         raw_text = read_text_file(str(f))
         
-        print("  📝 Aplicando normalização semântica...")
+        print("  Aplicando normalização semântica...")
         normalized_text = normalize_stylistic_abbreviations(raw_text)
         clean_text, detected_title = normalize_chapter_titles(normalized_text)
         if detected_title:
@@ -88,7 +88,16 @@ def process_novel_session(novel_name: str, input_dir: Path, output_dir: Path, pr
 
         # Traduza usando o Core. Erros são capturados por arquivo para que o processamento continue.
         try:
-            translated = translate_text(text_to_translate, source_lang=None, glossary=glossary, api_key=api_key)
+            translated = translate_text(
+                text_to_translate, 
+                source_lang=None, 
+                glossary=glossary, 
+                api_key=api_key,
+                glossary_path=str(session_dir),
+                novel_name=novel_name,
+                enable_semantic_review=True,
+                is_mature_content=True,
+            )
         except Exception as e:
             print(f"[{novel_name}] Erro ao traduzir {f.name}: {e}")
             # Grave a estatística de falha e continue para o próximo arquivo
@@ -123,7 +132,7 @@ def process_novel_session(novel_name: str, input_dir: Path, output_dir: Path, pr
         print(f"[{novel_name}] Escrito: {docx_path} (tempo {elapsed:.2f}s)")
 
         # CRÍTICO: Anexe o resultado à memória de contexto para o próximo arquivo.
-        append_context_memory(novel_name, str(session_dir), translated)
+        append_context_memory(novel_name, translated, base_dir=str(session_dir))
         context = f"{context}\n\n{translated}".strip()
 
     # Escreva as estatísticas do Excel por novel na pasta output/
@@ -164,4 +173,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
